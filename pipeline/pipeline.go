@@ -1,4 +1,5 @@
 // Package pipeline provides simple, channel-based data streams. Create a stream from a slice, chain operations such as mapping and filtering, and finish with collectors
+// The Package streams provides a simpler usage for go versions > 1.27.0
 package pipeline
 
 // A Pipeline describes a Pipeline operation that is run on every element of the Data Stream. It Offers chaining of Operations and Collection of the Elements of a Stream
