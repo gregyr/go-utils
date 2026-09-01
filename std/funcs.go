@@ -73,6 +73,30 @@ func AllEqual[T comparable](s []T, t T) bool {
 	return true
 }
 
+func EqualContent[T comparable](s []T, t []T) bool {
+	if len(s) != len(t) {
+		return false
+	}
+	sMap := make(map[T]int)
+	tMap := make(map[T]int)
+
+	if (s == nil) != (t == nil) {
+		return false
+	}
+
+	for i := range len(s) {
+		sMap[s[i]]++
+		tMap[t[i]]++
+	}
+
+	for k, v := range sMap {
+		if v != tMap[k] {
+			return false
+		}
+	}
+	return true
+}
+
 func CeilToInt(x float64) int {
 	return int(math.Ceil(x))
 }
