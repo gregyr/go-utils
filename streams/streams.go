@@ -1,6 +1,11 @@
 // Package streams provides a generic implementation of a Stream. It allows for streaming of Slices and chaining operations on such streams. It utilizes the new Generic Methods added in Go 1.27.0
 package streams
 
+import (
+	"bufio"
+	"os"
+)
+
 type Stream[T any] chan T
 
 func StreamSlice[T any](s []T) Stream[T] {
@@ -10,6 +15,24 @@ func StreamSlice[T any](s []T) Stream[T] {
 		defer close(c)
 		for _, value := range s {
 			c <- value
+		}
+	}()
+
+	return c
+}
+
+// streams a file one line at a time
+func StreamFile(file *os.File) Stream[[]byte] {
+	c := make(chan []byte)
+
+	go func() {
+		defer close(c)
+		buf := bufio.NewScanner(file)
+		for buf.Scan() {
+			c <- buf.Bytes()
+		}
+		if buf.Err() != nil {
+			panic(buf.Err())
 		}
 	}()
 

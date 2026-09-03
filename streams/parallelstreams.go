@@ -1,6 +1,10 @@
 package streams
 
-import "sync"
+import (
+	"bufio"
+	"os"
+	"sync"
+)
 
 type ParallelStream[T any] struct {
 	buffer     chan T
@@ -19,6 +23,29 @@ func ParallelStreamSlice[T any](s []T, routines int, buffersize int) *ParallelSt
 		defer close(stream.buffer)
 		for _, value := range s {
 			stream.buffer <- value
+		}
+	}()
+
+	return stream
+}
+
+// streams a file one line at a time
+func ParallelStreamFile(file *os.File, routines int, buffersize int) *ParallelStream[[]byte] {
+
+	stream := &ParallelStream[[]byte]{
+		buffer:     make(chan []byte, buffersize),
+		routines:   routines,
+		buffersize: buffersize,
+	}
+
+	go func() {
+		defer close(stream.buffer)
+		buf := bufio.NewScanner(file)
+		for buf.Scan() {
+			stream.buffer <- buf.Bytes()
+		}
+		if buf.Err() != nil {
+			panic(buf.Err())
 		}
 	}()
 

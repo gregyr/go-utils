@@ -54,15 +54,6 @@ func Clamp(v, min, max int) int {
 	return v
 }
 
-// provides a slice over a range
-func Range(n int) []int {
-	r := make([]int, n)
-	for i := range n {
-		r[i] = i
-	}
-	return r
-}
-
 // checks whether all the values of a slice equal one given value
 func AllEqual[T comparable](s []T, t T) bool {
 	for _, e := range s {
@@ -73,6 +64,7 @@ func AllEqual[T comparable](s []T, t T) bool {
 	return true
 }
 
+// returns true if s and t contain the same elements but not necessarily in the same order
 func EqualContent[T comparable](s []T, t []T) bool {
 	if len(s) != len(t) {
 		return false
@@ -97,10 +89,18 @@ func EqualContent[T comparable](s []T, t []T) bool {
 	return true
 }
 
+// returns the Ceil of x as an int, if x is NaN or +-Inf it returns 0
 func CeilToInt(x float64) int {
+	if math.IsNaN(x) || math.IsInf(x, 0) {
+		return 0
+	}
 	return int(math.Ceil(x))
 }
 
+// returns the Floor of x as an int, if x is NaN or +-Inf it returns 0
 func FloorToInt(x float64) int {
+	if math.IsNaN(x) || math.IsInf(x, 0) {
+		return 0
+	}
 	return int(math.Floor(x))
 }
