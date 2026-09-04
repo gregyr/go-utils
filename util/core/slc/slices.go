@@ -1,6 +1,9 @@
-package std
+package slc
 
-import "slices"
+import (
+	"iter"
+	"slices"
+)
 
 // provides a slice over a range
 func Range(n int) []int {
@@ -9,6 +12,14 @@ func Range(n int) []int {
 		r[i] = i
 	}
 	return r
+}
+
+func IterToSlice[T any](i iter.Seq[T]) []T {
+	s := make([]T, 0)
+	for e := range i {
+		s = append(s, e)
+	}
+	return s
 }
 
 // splits a slice in two before the first occurence of elem, meaning that elem is the first element of the second slice.

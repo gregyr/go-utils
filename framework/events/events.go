@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/gregyr/go-utils/std"
+	. "github.com/gregyr/go-utils/util/core/fun"
 )
 
 type CoreProcessor struct {

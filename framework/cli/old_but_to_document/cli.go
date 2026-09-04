@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gregyr/go-utils/std"
+	"github.com/gregyr/go-utils/util/core/fun"
 )
 
 type Flag struct {
@@ -62,7 +62,7 @@ func (f *CLI) Usage() {
 
 	builder.WriteString("Usage:\n")
 
-	fmt.Fprintf(&builder, "%s %s %s\n\n", f.name, std.If(len(f.flags) > 0, "[options/flags]", ""), std.If(len(f.inputName) > 0, fmt.Sprintf("[%s]", f.inputName), ""))
+	fmt.Fprintf(&builder, "%s %s %s\n\n", f.name, fun.If(len(f.flags) > 0, "[options/flags]", ""), fun.If(len(f.inputName) > 0, fmt.Sprintf("[%s]", f.inputName), ""))
 
 	builder.WriteString("Options:\n")
 	for _, opt := range f.opts {

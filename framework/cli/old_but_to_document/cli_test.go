@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	"github.com/gregyr/go-utils/std"
+	"github.com/gregyr/go-utils/util/core/fun"
 )
 
 func TestAddFlagAndAddOptAddCorrectly(t *testing.T) {
@@ -59,7 +59,7 @@ func TestParseArgsReturnsEverythingFalseForNoArgs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed with error: %s", err)
 	}
-	if !std.AllEqual(c.flagstates, false) {
+	if !fun.AllEqual(c.flagstates, false) {
 		t.Error("Expected all flags to be false")
 	}
 }

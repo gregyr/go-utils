@@ -1,6 +1,10 @@
-package std
+package fun
 
-import "math"
+import (
+	"log"
+	"math"
+	"strconv"
+)
 
 // allows inline if statements
 func If[T any](cond bool, returnValue T, elseValue T) T {
@@ -103,4 +107,19 @@ func FloorToInt(x float64) int {
 		return 0
 	}
 	return int(math.Floor(x))
+}
+
+func AtoiOrZero(s string) int {
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
+// Logs an error on functions that only return an error
+func LogIfError(err error) {
+	if err != nil {
+		log.Println(err)
+	}
 }
