@@ -1,0 +1,3 @@
+in wrapper.go i want to implement a functionality to have a commandwrapper, that has the ability to wrap subcommands those subcommands can either be wrappers or commands, how can i make it actually exec a command if it is a command and not a wrapper?
+I want to retain already established functionality, i.e. being able to only create a command and run it on it's own, without 
+I have thought of having a "fn" field in a command object that when a "Exec" method is called on the command the function under "fn" is executed, handling what the command should do

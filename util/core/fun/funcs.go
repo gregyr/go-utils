@@ -1,8 +1,10 @@
 package fun
 
 import (
+	"fmt"
 	"log"
 	"math"
+	"os"
 	"strconv"
 )
 
@@ -121,5 +123,12 @@ func AtoiOrZero(s string) int {
 func LogIfError(err error) {
 	if err != nil {
 		log.Println(err)
+	}
+}
+
+func ExitOnError(err error) {
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
