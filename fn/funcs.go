@@ -1,4 +1,4 @@
-package fun
+package fn
 
 import (
 	"fmt"

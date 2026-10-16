@@ -8,7 +8,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/gregyr/go-utils/util/core/slc"
+	"github.com/gregyr/go-utils/fn"
+	"github.com/gregyr/go-utils/slice"
 )
 
 // POC, final product needs to be more resilient
@@ -54,33 +55,41 @@ func (w *Wrapper) ParseAndExec(args []string) error {
 	args = args[1:]
 
 	if len(args) == 0 {
-		w.Usage()
+		w.Usage(false)
 		fmt.Println()
 		return fmt.Errorf("%s - expected subcommand\n", cmdname)
 	}
 
+	if args[0] == "-h" || args[0] == "--help" || args[0] == "help" {
+		w.Usage(false)
+		return nil
+	}
+
 	nextcmd, ok := w.subCommands[args[0]]
 	if !ok {
-		w.Usage()
+		w.Usage(false)
 		fmt.Println()
 		return fmt.Errorf("%s - unknown subcommand %s\n", cmdname, args[0])
 	}
 	return nextcmd.ParseAndExec(args)
 }
 
-func (w *Wrapper) ParseOsArgsAndExec() error {
+func (w *Wrapper) ParseOsArgsAndExec() {
 	args := os.Args
 
-	return w.ParseAndExec(args)
+	err := w.ParseAndExec(args)
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
-func (w *Wrapper) Usage() {
+func (w *Wrapper) Usage(isroot bool) {
 	var b strings.Builder
 
-	programName := filepath.Base(os.Args[0])
+	programName := fn.If(isroot, filepath.Base(os.Args[0]), w.name)
 
 	fmt.Fprintf(&b, "Usage of %s\n", programName)
-	cmdNames := slc.IterToSlice(maps.Keys(w.subCommands))
+	cmdNames := slice.IterToSlice(maps.Keys(w.subCommands))
 
 	slices.Sort(cmdNames)
 
@@ -88,6 +97,8 @@ func (w *Wrapper) Usage() {
 		cmd := w.subCommands[n]
 		fmt.Fprintf(&b, "%s - %s\n", cmd.Name(), cmd.Desc())
 	}
+
+	fmt.Fprintln(&b, "\n-h, --help, help - show this menu")
 
 	fmt.Print(b.String())
 }

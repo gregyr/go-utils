@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"maps"
 	"os"
-	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
 
-	"github.com/gregyr/go-utils/util/core/slc"
+	"github.com/gregyr/go-utils/slice"
 )
 
 // CLI IMPLEMENTATION
@@ -329,10 +328,10 @@ func (c *Command[T]) ParseAndExec(args []string) error {
 func (c *Command[T]) usage() {
 	var b strings.Builder
 
-	programName := filepath.Base(os.Args[0])
+	programName := c.name
 
 	fmt.Fprintf(&b, "Usage of %s\n", programName)
-	flagnames := slc.IterToSlice(maps.Keys(c.flags))
+	flagnames := slice.IterToSlice(maps.Keys(c.flags))
 	// sort the slice such that first all the boolean flags are in lexicographical order, then the rest in lexicographicalorder
 	slices.SortFunc(flagnames, func(a, b string) int {
 		if (c.flags[a].Value.Type() == c.flags[b].Value.Type() && c.flags[a].Value.Type() == FlagBool) ||

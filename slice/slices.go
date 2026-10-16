@@ -1,4 +1,4 @@
-package slc
+package slice
 
 import (
 	"iter"
@@ -10,6 +10,22 @@ func Range(n int) []int {
 	r := make([]int, n)
 	for i := range n {
 		r[i] = i
+	}
+	return r
+}
+
+func RangeOver(start, length, step int) []int {
+	r := make([]int, length)
+	for i := range length {
+		r[i] = start + (i * step)
+	}
+	return r
+}
+
+func RangeFunc[T any](n int, fillFn func(i int) T) []T {
+	r := make([]T, n)
+	for i := range n {
+		r[i] = fillFn(i)
 	}
 	return r
 }
