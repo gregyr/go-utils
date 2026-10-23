@@ -320,7 +320,6 @@ func (c *Command[T]) ParseAndExec(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(c)
 	return c.Exec()
 }
 
