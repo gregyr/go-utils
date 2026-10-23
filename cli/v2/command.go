@@ -1,5 +1,5 @@
 // package cli provides a basic framework for creating commands containing flags. Flags can be parsed via a CLI object. Supports both long and short flag identifiers aswell as aliases. Allows for chaining of short identifiers
-package cmd
+package cli
 
 import (
 	"fmt"
