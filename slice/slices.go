@@ -189,3 +189,15 @@ func ContainsElements[T comparable](main []T, sub []T) bool {
 	}
 	return true
 }
+
+func ContainsDuplicates[T comparable](s []T) bool {
+	set := make(map[T]struct{})
+
+	for _, element := range s {
+		if _, found := set[element]; found {
+			return true
+		}
+		set[element] = struct{}{}
+	}
+	return false
+}
