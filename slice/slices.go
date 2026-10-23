@@ -136,3 +136,56 @@ func (p Pipe[T]) Reduce[A any](base A, fn func(base A, v T) A) A {
 	}
 	return base
 }
+
+// returns true if s and t contain the same elements but not necessarily in the same order
+func EqualContent[T comparable](s []T, t []T) bool {
+	if len(s) != len(t) {
+		return false
+	}
+
+	if (s == nil) != (t == nil) {
+		return false
+	}
+
+	sMap := make(map[T]int)
+	tMap := make(map[T]int)
+	for i := range len(s) {
+		sMap[s[i]]++
+		tMap[t[i]]++
+	}
+
+	for k, v := range sMap {
+		if v != tMap[k] {
+			return false
+		}
+	}
+	return true
+}
+
+func ContainsElements[T comparable](main []T, sub []T) bool {
+
+	if (main == nil) && (sub != nil) {
+		return false
+	}
+	if len(sub) == 0 {
+		return true
+	}
+	if len(main) < len(sub) {
+		return false
+	}
+
+	elements := make(map[T]int)
+	for i := range len(main) {
+		elements[main[i]]++
+	}
+	for i := range len(sub) {
+		elements[sub[i]]--
+	}
+
+	for _, v := range elements {
+		if v < 0 {
+			return false
+		}
+	}
+	return true
+}

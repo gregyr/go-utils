@@ -70,31 +70,6 @@ func AllEqual[T comparable](s []T, t T) bool {
 	return true
 }
 
-// returns true if s and t contain the same elements but not necessarily in the same order
-func EqualContent[T comparable](s []T, t []T) bool {
-	if len(s) != len(t) {
-		return false
-	}
-	sMap := make(map[T]int)
-	tMap := make(map[T]int)
-
-	if (s == nil) != (t == nil) {
-		return false
-	}
-
-	for i := range len(s) {
-		sMap[s[i]]++
-		tMap[t[i]]++
-	}
-
-	for k, v := range sMap {
-		if v != tMap[k] {
-			return false
-		}
-	}
-	return true
-}
-
 // returns the Ceil of x as an int, if x is NaN or +-Inf it returns 0
 func CeilToInt(x float64) int {
 	if math.IsNaN(x) || math.IsInf(x, 0) {
