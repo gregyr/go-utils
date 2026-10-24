@@ -162,6 +162,25 @@ func EqualContent[T comparable](s []T, t []T) bool {
 	return true
 }
 
+func EqualContentFunc[T any](s []T, t []T, equalsFunc func(T, T) bool) bool {
+	if len(s) != len(t) {
+		return false
+	}
+
+	if (s == nil) != (t == nil) {
+		return false
+	}
+
+	for _, a := range s {
+		for _, b := range t {
+			if !equalsFunc(a, b) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func ContainsElements[T comparable](main []T, sub []T) bool {
 
 	if (main == nil) && (sub != nil) {
