@@ -172,10 +172,14 @@ func EqualContentFunc[T any](s []T, t []T, equalsFunc func(T, T) bool) bool {
 	}
 
 	for _, a := range s {
+		existsInB := false
 		for _, b := range t {
-			if !equalsFunc(a, b) {
-				return false
+			if equalsFunc(a, b) {
+				existsInB = true
 			}
+		}
+		if !existsInB {
+			return false
 		}
 	}
 	return true
