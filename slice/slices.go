@@ -137,6 +137,16 @@ func (p Pipe[T]) Reduce[A any](base A, fn func(base A, v T) A) A {
 	return base
 }
 
+// checks whether all the values of a slice equal one given value
+func AllEqual[T comparable](s []T, t T) bool {
+	for _, e := range s {
+		if t != e {
+			return false
+		}
+	}
+	return true
+}
+
 // returns true if s and t contain the same elements but not necessarily in the same order
 func EqualContent[T comparable](s []T, t []T) bool {
 	if len(s) != len(t) {
