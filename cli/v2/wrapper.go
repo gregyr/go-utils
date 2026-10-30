@@ -75,7 +75,7 @@ func (w *Wrapper) ParseOsArgsAndExec() {
 
 	err := w.ParseAndExec(args, true)
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		fmt.Printf("Error: %s\n", err)
 		os.Exit(1)
 	}
 }
