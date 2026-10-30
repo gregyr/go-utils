@@ -21,6 +21,19 @@ const (
 	FlagBool string = "Bool"
 )
 
+const (
+	TailModeMin TailMode = iota
+	TailModeMax
+	TailModeExact
+)
+
+type TailMode int
+
+type TailSettings struct {
+	mode   TailMode
+	length int
+}
+
 type FlagValue interface {
 	Set(string) error
 	String() string
@@ -32,14 +45,15 @@ type Flag struct {
 	Desc  string
 }
 
+// the command type is used for executing a function when called. it is provided with an argstorage, this is usually a struct containing the values of flags if they are set.
 type Command[T any] struct {
-	name        string
-	description string
-	flags       map[string]Flag
-	aliases     map[string]string
-	tail        []string
-	fn          func(*Command[T]) error
-	argstorage  *T
+	Formatting
+	flags        map[string]Flag
+	aliases      map[string]string
+	tail         []string
+	tailSettings TailSettings
+	fn           func(*Command[T]) error
+	argstorage   *T
 }
 
 type stringValue string
@@ -92,7 +106,7 @@ func (f *float32Value) Type() string   { return "Float32" }
 
 // Creates a new CLI object intended for single use, if it parsed args once, it cannot reset values to their defaults for subsequent calls
 func New[T any](name, desc string, fn func(*Command[T]) error) *Command[T] {
-	return &Command[T]{name: name, description: desc, flags: make(map[string]Flag), aliases: make(map[string]string), fn: fn, argstorage: new(T)}
+	return &Command[T]{name: name, desc: desc, flags: make(map[string]Flag), aliases: make(map[string]string), fn: fn, argstorage: new(T), tailSettings: TailSettings{mode: TailModeMin, length: 0}}
 }
 
 // Creates a flag containing a boolean Value if named "help" or "h", the flag will not be found as those are reserved to the usage reference, the flag is false by default
@@ -169,16 +183,14 @@ func (c *Command[T]) Tail() []string {
 	return slices.Clone(c.tail)
 }
 
+// returns the commands argument store, flags need to be written to this store for the command to be able to use them
 func (c *Command[T]) Store() *T {
 	return c.argstorage
 }
 
-func (c *Command[T]) Name() string {
-	return c.name
-}
-
-func (c *Command[T]) Desc() string {
-	return c.description
+// determines how the command handles tail arguments and how many it expects
+func (c *Command[T]) SetTailMode(mode TailMode, length int) {
+	c.tailSettings = TailSettings{mode: mode, length: length}
 }
 
 // Reads from os.Args and parses any provided arguments. Flags will be stored into previously created Flags, if a flag was not found, the program exits with a usage reference based on the created flags.
@@ -308,6 +320,21 @@ func (c *Command[T]) parse(args []string) error {
 
 	}
 	c.tail = slices.Clone(args[token:])
+
+	tailMode := c.tailSettings.mode
+	wantedTailLength := c.tailSettings.length
+	tailLength := len(c.tail)
+
+	if tailMode == TailModeExact && tailLength != wantedTailLength {
+		return fmt.Errorf("Expected %v arguments, got %v", wantedTailLength, tailLength)
+	}
+	if tailMode == TailModeMin && tailLength < wantedTailLength {
+		return fmt.Errorf("Expected atleast %v arguments, got %v", wantedTailLength, tailLength)
+	}
+	if tailMode == TailModeMax && tailLength > wantedTailLength {
+		return fmt.Errorf("Expected at most %v arguments, got %v", wantedTailLength, tailLength)
+	}
+
 	return nil
 }
 
@@ -315,7 +342,7 @@ func (c *Command[T]) Exec() error {
 	return c.fn(c)
 }
 
-func (c *Command[T]) ParseAndExec(args []string) error {
+func (c *Command[T]) ParseAndExec(args []string, _ bool) error {
 	err := c.parse(args)
 	if err != nil {
 		return err
@@ -327,49 +354,37 @@ func (c *Command[T]) ParseAndExec(args []string) error {
 func (c *Command[T]) usage() {
 	var b strings.Builder
 
-	programName := c.name
+	c.writeHeader(&b, c.genericUsageString)
 
-	fmt.Fprintf(&b, "Usage of %s\n", programName)
+	const UNDERLINE string = "\033[1;4m"
+	const RESET string = "\033[0m"
+
 	flagnames := slice.IterToSlice(maps.Keys(c.flags))
-	// sort the slice such that first all the boolean flags are in lexicographical order, then the rest in lexicographicalorder
-	slices.SortFunc(flagnames, func(a, b string) int {
-		if (c.flags[a].Value.Type() == c.flags[b].Value.Type() && c.flags[a].Value.Type() == FlagBool) ||
-			(c.flags[a].Value.Type() == c.flags[b].Value.Type() && c.flags[a].Value.Type() != FlagBool) {
-			if a < b {
-				return -1
-			}
-			if a > b {
-				return 1
-			}
-			return 0
-		}
-		if c.flags[a].Value.Type() == FlagBool {
-			return -1
-		}
-		return 1
-	})
-
+	sortFlagNames(flagnames, c.flags)
+	fmt.Fprintf(&b, "Available Flags are:\n")
 	for _, name := range flagnames {
 		oneChar, long := getSplitFlagNames(c.aliasesFor(name))
+		fmt.Fprintf(&b, "\t%s", UNDERLINE)
+		for i, flag := range oneChar {
+			fmt.Fprintf(&b, "-%s", flag)
+			if i != len(oneChar)-1 || len(long) > 0 {
+				b.WriteString(", ")
+			}
+		}
 
 		for i, flag := range long {
 			fmt.Fprintf(&b, "--%s", flag)
-			if i != len(long)-1 || len(oneChar) > 0 {
+			if i != len(long)-1 {
 				b.WriteString(", ")
 			}
 		}
-		for i, flag := range oneChar {
-			fmt.Fprintf(&b, "-%s", flag)
-			if i != len(oneChar)-1 {
-				b.WriteString(", ")
-			}
-		}
+		fmt.Fprintf(&b, "%s", RESET)
 
 		fflag := c.flags[name]
 		if fflag.Value.Type() == FlagBool {
-			fmt.Fprintf(&b, ": %s\n", c.flags[name].Desc)
+			fmt.Fprintf(&b, ":\n\t    %s\n", c.flags[name].Desc)
 		} else {
-			fmt.Fprintf(&b, " = %v (%v): %s\n", fflag.Value.Type(), fflag.Value, fflag.Desc)
+			fmt.Fprintf(&b, " = %v (%v):\n\t    %s\n", fflag.Value.Type(), fflag.Value, fflag.Desc)
 		}
 	}
 	fmt.Print(b.String())
@@ -443,6 +458,20 @@ func (c *Command[T]) setOrFlip(flag Flag, flagname, value string, found bool) er
 	return nil
 }
 
+func (c *Command[T]) genericUsageString() string {
+	programName := c.name
+
+	flagStr := "[flags]"
+	argStr := "[arguments]"
+	if len(c.flags) == 0 {
+		flagStr = ""
+	}
+	if (c.tailSettings.mode == TailModeMax || c.tailSettings.mode == TailModeExact) && c.tailSettings.length == 0 {
+		argStr = ""
+	}
+	return fmt.Sprintf("%s %s %s \n", programName, flagStr, argStr)
+}
+
 // splits a list of flagnames into the ones which are one character long and those longer.
 // returns the individual flags in lexicographical order
 func getSplitFlagNames(allFlagNames []string) (oneChar []string, long []string) {
@@ -480,4 +509,24 @@ func errorOnInvalidIdentifier(identifier string) error {
 		return fmt.Errorf("flag identifier cannot contain whitespaces: %s", identifier)
 	}
 	return nil
+}
+
+// sort the slice in place such that first all the boolean flags are in lexicographical order, then the rest in lexicographicalorder
+func sortFlagNames(flagnames []string, flags map[string]Flag) {
+	slices.SortFunc(flagnames, func(a, b string) int {
+		if (flags[a].Value.Type() == flags[b].Value.Type() && flags[a].Value.Type() == FlagBool) ||
+			(flags[a].Value.Type() == flags[b].Value.Type() && flags[a].Value.Type() != FlagBool) {
+			if a < b {
+				return -1
+			}
+			if a > b {
+				return 1
+			}
+			return 0
+		}
+		if flags[a].Value.Type() == FlagBool {
+			return -1
+		}
+		return 1
+	})
 }

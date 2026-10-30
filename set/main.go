@@ -50,7 +50,7 @@ func (s set[T]) Remove(t T) T {
 	return t
 }
 
-// Merge behaves like Union, however it merges u into s therefore mutation s in place
+// Merge behaves like Union, however it merges u into s therefore mutates s in place
 func (s set[T]) Merge(u set[T]) {
 	for k := range u {
 		s[k] = struct{}{}
