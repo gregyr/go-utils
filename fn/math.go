@@ -44,3 +44,10 @@ func FloorToInt(x float64) int {
 	}
 	return int(math.Floor(x))
 }
+
+func Abs(x int) int {
+	if x > 0 {
+		return x
+	}
+	return -x
+}
